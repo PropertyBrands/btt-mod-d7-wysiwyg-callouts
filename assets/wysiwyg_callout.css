@@ -1,0 +1,18 @@
+@media screen and (min-width: 480px) {
+  .wysiwyg-callout div {
+    float: left;
+    width: 50%;
+  }
+  .wysiwyg-callout-right .image {
+    float:right;
+  }
+}
+
+.wysiwyg-callout img {
+  width:100%;
+  height:auto;
+}
+
+.wysiwyg-callout .copy {
+  padding: 10px;
+}

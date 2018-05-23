@@ -1,0 +1,92 @@
+<?php
+
+define('WYSIWYG_CALLOUT_TOKEN_REGEX', '/\[\[\{.*?"type":"wysiwyg_callout".+\}\]\]/s');
+
+/**
+ * Implements hook_filter_info().
+ */
+function wysiwyg_callouts_filter_info() {
+  $filters['wysiwyg_callout'] = array(
+    'title' => t('Convert Callout tags to markup'),
+    'description' => t('This filter will convert [[{type:wysiwyg_callout... ]] tags into markup.'),
+    'process callback' => 'wysiwyg_callout_filter',
+    'weight' => 2,
+  );
+  
+  return $filters;
+}
+
+/**
+ * Filter process callback.
+ *
+ * @param $text
+ * @param null $filter
+ * @param null $format
+ * @param null $langcode
+ * @param null $cache
+ * @param null $cache_id
+ *
+ * @return mixed
+ */
+function wysiwyg_callout_filter($text, $filter = NULL, $format = NULL, $langcode = NULL, $cache = NULL, $cache_id = NULL) {
+  $rendered_text = $text;
+  $count = 1;
+  preg_match_all(WYSIWYG_CALLOUT_TOKEN_REGEX, $text, $matches);
+  if (!empty($matches[0])) {
+    foreach ($matches[0] as $match) {
+      $str = str_replace('[[', "", $match);
+      $str = str_replace(']]', "", $str);
+      $info = json_decode($str, TRUE);
+      if(!empty($info['data'])) {
+        $replacement = '';
+        foreach($info['data'] as $content) {
+          $build = array(
+            '#theme' =>'wysiwyg_callout',
+            '#image' => $content['image'],
+            '#copy' => decode_entities($content['copy']),
+            '#image_side' => $content['image_side'],
+          );
+          $replacement .= drupal_render($build);
+        }
+        $rendered_text = str_replace($match, $replacement, $rendered_text, $count);
+      }
+    }
+  }
+  return $rendered_text;
+}
+
+/**
+ * Implements hook_theme().
+ *
+ * @return array
+ */
+function wysiwyg_callouts_theme() {
+  return array(
+    'wysiwyg_callout' => array(
+      'template' => 'theme/wysiwyg-callout',
+      'variables' => array(
+        'copy' => NULL,
+        'image' => NULL,
+        'image_side' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_alter().
+ *
+ * Filter process callbacks get cached in a manner which prevents
+ * the dynamic adding to CSS/JS stylesheets. For now, our styles are
+ * compact enough that including them on all pages isn't that bad.
+ *
+ * @todo: refactor this out.
+ *
+ * @param $page
+ */
+function wysiwyg_callouts_page_alter(&$page) {
+  $page['header']['#attached']['css'][] = array(
+    'data' => drupal_get_path('module', 'wysiwyg_callouts') . '/assets/wysiwyg_callout.css',
+    'type' => 'file',
+  );
+}
