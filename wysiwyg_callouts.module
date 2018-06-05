@@ -1,7 +1,5 @@
 <?php
 
-define('WYSIWYG_CALLOUT_TOKEN_REGEX', '/\[\[\{.*?"type":"wysiwyg_callout".+\}\]\]/s');
-
 /**
  * Implements hook_filter_info().
  */
@@ -29,30 +27,11 @@ function wysiwyg_callouts_filter_info() {
  * @return mixed
  */
 function wysiwyg_callout_filter($text, $filter = NULL, $format = NULL, $langcode = NULL, $cache = NULL, $cache_id = NULL) {
-  $rendered_text = $text;
-  $count = 1;
-  preg_match_all(WYSIWYG_CALLOUT_TOKEN_REGEX, $text, $matches);
-  if (!empty($matches[0])) {
-    foreach ($matches[0] as $match) {
-      $str = str_replace('[[', "", $match);
-      $str = str_replace(']]', "", $str);
-      $info = json_decode($str, TRUE);
-      if(!empty($info['data'])) {
-        $replacement = '';
-        foreach($info['data'] as $content) {
-          $build = array(
-            '#theme' =>'wysiwyg_callout',
-            '#image' => $content['image'],
-            '#copy' => decode_entities($content['copy']),
-            '#image_side' => $content['image_side'],
-          );
-          $replacement .= drupal_render($build);
-        }
-        $rendered_text = str_replace($match, $replacement, $rendered_text, $count);
-      }
-    }
-  }
-  return $rendered_text;
+  $build = array(
+    '#theme' =>'wysiwyg_callout',
+  );
+  $new_text =  str_replace('##WYSIWYG_CALLOUT##', drupal_render($build), $text);
+  return $new_text;
 }
 
 /**
@@ -64,11 +43,6 @@ function wysiwyg_callouts_theme() {
   return array(
     'wysiwyg_callout' => array(
       'template' => 'theme/wysiwyg-callout',
-      'variables' => array(
-        'copy' => NULL,
-        'image' => NULL,
-        'image_side' => NULL,
-      ),
     ),
   );
 }

@@ -1,4 +1,7 @@
 @media screen and (min-width: 480px) {
+  .wysiwyg-callout {
+    clear:both;
+  }
   .wysiwyg-callout div {
     float: left;
     width: 50%;
@@ -6,6 +9,11 @@
   .wysiwyg-callout-right .image {
     float:right;
   }
+}
+
+.wysiwyg-callout {
+  margin-bottom:40px;
+  overflow:hidden;
 }
 
 .wysiwyg-callout img {
